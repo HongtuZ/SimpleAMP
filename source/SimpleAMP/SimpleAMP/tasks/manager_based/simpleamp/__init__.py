@@ -21,3 +21,13 @@ gym.register(
         "rsl_rl_cfg_entry_point": f"{agents.__name__}.amp_agent_cfg:RslRlOnPolicyRunnerAmpCfg",
     },
 )
+
+gym.register(
+    id="Template-Simpleamp-v0-Play",
+    entry_point=f"{__name__}.simpleamp_env:SimpleampEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.simpleamp_env_cfg:SimpleampEnvCfgPlay",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.amp_agent_cfg:RslRlOnPolicyRunnerAmpCfg",
+    },
+)

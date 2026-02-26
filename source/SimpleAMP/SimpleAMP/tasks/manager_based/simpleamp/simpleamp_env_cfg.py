@@ -393,3 +393,23 @@ class SimpleampEnvCfg(ManagerBasedRLEnvCfg):
         # simulation settings
         self.sim.dt = 1 / 200
         self.sim.render_interval = self.decimation
+
+@configclass
+class SimpleampEnvCfgPlay(SimpleampEnvCfg):
+    def __post_init__(self):
+        # post init of parent
+        super().__post_init__()
+
+        # make a smaller scene for play
+        self.scene.num_envs = 1
+        self.scene.env_spacing = 2.5
+        self.episode_length_s = 40.0
+
+        self.commands.base_velocity.ranges.lin_vel_x = (2.0, 2.0)
+        self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
+        self.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
+
+        # disable randomization for play
+        self.observations.policy.enable_corruption = False
+        # remove random pushing
+        self.events.push_robot = None
