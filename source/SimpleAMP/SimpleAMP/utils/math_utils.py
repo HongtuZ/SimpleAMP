@@ -1721,40 +1721,84 @@ def pose_in_A_to_pose_in_B(pose_in_A: torch.Tensor, pose_A_in_B: torch.Tensor) -
     return torch.matmul(pose_A_in_B, pose_in_A)
 
 
-def quat_slerp(q1: torch.Tensor, q2: torch.Tensor, tau: float) -> torch.Tensor:
-    """Performs spherical linear interpolation (SLERP) between two quaternions.
+# def quat_slerp(q1: torch.Tensor, q2: torch.Tensor, tau: float) -> torch.Tensor:
+#     """Performs spherical linear interpolation (SLERP) between two quaternions.
 
-    This function does not support batch processing.
+#     This function does not support batch processing.
+
+#     Args:
+#         q1: First quaternion in (w, x, y, z) format.
+#         q2: Second quaternion in (w, x, y, z) format.
+#         tau: Interpolation coefficient between 0 (q1) and 1 (q2).
+
+#     Returns:
+#         Interpolated quaternion in (w, x, y, z) format.
+#     """
+#     assert isinstance(q1, torch.Tensor), "Input must be a torch tensor"
+#     assert isinstance(q2, torch.Tensor), "Input must be a torch tensor"
+#     if tau == 0.0:
+#         return q1
+#     elif tau == 1.0:
+#         return q2
+#     d = torch.dot(q1, q2)
+#     if abs(abs(d) - 1.0) < torch.finfo(q1.dtype).eps * 4.0:
+#         return q1
+#     if d < 0.0:
+#         # Invert rotation
+#         d = -d
+#         q2 *= -1.0
+#     angle = torch.acos(torch.clamp(d, -1, 1))
+#     if abs(angle) < torch.finfo(q1.dtype).eps * 4.0:
+#         return q1
+#     isin = 1.0 / torch.sin(angle)
+#     q1 = q1 * torch.sin((1.0 - tau) * angle) * isin
+#     q2 = q2 * torch.sin(tau * angle) * isin
+#     q1 = q1 + q2
+#     return q1
+
+def quat_slerp(
+    q0: torch.Tensor,
+    q1: torch.Tensor,
+    blend: torch.Tensor,
+) -> torch.Tensor:
+    """Interpolation between consecutive rotations (Spherical Linear Interpolation).
 
     Args:
-        q1: First quaternion in (w, x, y, z) format.
-        q2: Second quaternion in (w, x, y, z) format.
-        tau: Interpolation coefficient between 0 (q1) and 1 (q2).
-
+        q0: The first quaternion (wxyz). Shape is (N, 4) or (N, M, 4).
+        q1: The second quaternion (wxyz). Shape is (N, 4) or (N, M, 4).
+        blend: Interpolation coefficient between 0 (q0) and 1 (q1). Shape is (N, 1) or (N, M, 1).
     Returns:
-        Interpolated quaternion in (w, x, y, z) format.
+        Interpolated quaternions. Shape is (N, 4) or (N, M, 4).
     """
-    assert isinstance(q1, torch.Tensor), "Input must be a torch tensor"
-    assert isinstance(q2, torch.Tensor), "Input must be a torch tensor"
-    if tau == 0.0:
-        return q1
-    elif tau == 1.0:
-        return q2
-    d = torch.dot(q1, q2)
-    if abs(abs(d) - 1.0) < torch.finfo(q1.dtype).eps * 4.0:
-        return q1
-    if d < 0.0:
-        # Invert rotation
-        d = -d
-        q2 *= -1.0
-    angle = torch.acos(torch.clamp(d, -1, 1))
-    if abs(angle) < torch.finfo(q1.dtype).eps * 4.0:
-        return q1
-    isin = 1.0 / torch.sin(angle)
-    q1 = q1 * torch.sin((1.0 - tau) * angle) * isin
-    q2 = q2 * torch.sin(tau * angle) * isin
-    q1 = q1 + q2
-    return q1
+    qw, qx, qy, qz = 0, 1, 2, 3  # wxyz
+    cos_half_theta = (
+        q0[..., qw] * q1[..., qw]
+        + q0[..., qx] * q1[..., qx]
+        + q0[..., qy] * q1[..., qy]
+        + q0[..., qz] * q1[..., qz]
+    )
+
+    neg_mask = cos_half_theta < 0
+    q1 = q1.clone() # type: ignore
+    q1[neg_mask] = -q1[neg_mask]
+    cos_half_theta = torch.abs(cos_half_theta)
+    cos_half_theta = torch.unsqueeze(cos_half_theta, dim=-1)
+
+    half_theta = torch.acos(cos_half_theta)
+    sin_half_theta = torch.sqrt(1.0 - cos_half_theta * cos_half_theta)
+
+    ratio_a = torch.sin((1 - blend) * half_theta) / sin_half_theta
+    ratio_b = torch.sin(blend * half_theta) / sin_half_theta
+
+    new_q_x = ratio_a * q0[..., qx : qx + 1] + ratio_b * q1[..., qx : qx + 1]
+    new_q_y = ratio_a * q0[..., qy : qy + 1] + ratio_b * q1[..., qy : qy + 1]
+    new_q_z = ratio_a * q0[..., qz : qz + 1] + ratio_b * q1[..., qz : qz + 1]
+    new_q_w = ratio_a * q0[..., qw : qw + 1] + ratio_b * q1[..., qw : qw + 1]
+
+    new_q = torch.cat([new_q_w, new_q_x, new_q_y, new_q_z], dim=len(new_q_w.shape) - 1)
+    new_q = torch.where(torch.abs(sin_half_theta) < 0.001, 0.5 * q0 + 0.5 * q1, new_q)
+    new_q = torch.where(torch.abs(cos_half_theta) >= 1, q0, new_q)
+    return new_q
 
 
 def interpolate_rotations(R1: torch.Tensor, R2: torch.Tensor, num_steps: int, axis_angle: bool = True) -> torch.Tensor:

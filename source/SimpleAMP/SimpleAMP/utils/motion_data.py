@@ -127,7 +127,7 @@ class MotionData():
         lengths_shifted = self.motion_num_frames.roll(1)
         lengths_shifted[0] = 0
         self.motion_start_indices = torch.cumsum(lengths_shifted, dim=0)
-        print(f'✅ Load motion data successfully!')
+        print(f'✅ Load motion data successfully on device {self.device}!')
 
     def sample_motion_ids(self, n: int) -> torch.Tensor:
         return torch.multinomial(self.motion_weights, num_samples=n, replacement=True)
@@ -195,7 +195,8 @@ class MotionData():
         body_pos_b_1 = self.body_pos_b[frame_idx1]
         
         # interpolate the values
-        root_quat_w = torch.cat([math_utils.quat_slerp(q0, q1, tau) for q0, q1, tau in zip(root_quat_w_0, root_quat_w_1, blend)]).float()
+        # root_quat_w = torch.cat([math_utils.quat_slerp(q0, q1, tau) for q0, q1, tau in zip(root_quat_w_0, root_quat_w_1, blend)]).float()
+        root_quat_w = math_utils.quat_slerp(root_quat_w_0, root_quat_w_1, blend).float()
 
         root_pos_w = torch.lerp(root_pos_w_0, root_pos_w_1, blend)
         root_lin_vel_w = torch.lerp(root_lin_vel_w_0, root_lin_vel_w_1, blend)
@@ -239,9 +240,18 @@ class MotionData():
 
 if __name__ == '__main__':
     # Test
-    motion_data = MotionData(motion_data_dir='/home/robot/hongtu/SimpleAMP/motion_data',
-                             device='cuda:0'
+    device = 'cuda:0'
+    # device = 'cpu'
+    motion_data = MotionData(motion_data_dir='/home/robot/hongtu/SimpleAMP/robot_assets/ths_23dof/motion_data',
+                             device=device
                             )
-    motion_ids = motion_data.sample_motion_ids(64)
-    motion_seq_times = motion_data.sample_motion_seq_times(motion_ids=motion_ids, n_steps=3, dt=0.1)
-    motion_seq_data = motion_data.get_motion_seq_data(motion_ids, motion_seq_times)
+    for _ in range(3):
+        motion_ids = motion_data.sample_motion_ids(4096)
+        motion_seq_times = motion_data.sample_motion_seq_times(motion_ids=motion_ids, n_steps=3, dt=0.1)
+        motion_seq_data = motion_data.get_motion_seq_data(motion_ids, motion_seq_times)
+        amp_input = torch.cat([
+            motion_seq_data['root_lin_vel_b'],
+            motion_seq_data['root_ang_vel_b'],
+            motion_seq_data['joint_pos'],
+            motion_seq_data['joint_vel'],
+            ], dim=-1).to('cuda:0') # (num_envs, n_steps, d)

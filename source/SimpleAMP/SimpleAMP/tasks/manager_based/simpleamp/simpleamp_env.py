@@ -9,7 +9,7 @@ class SimpleampEnv(ManagerBasedRLEnv):
     cfg: SimpleampEnvCfg
 
     def __init__(self, cfg: SimpleampEnvCfg, render_mode: str | None = None, **kwargs):
-        self.motion_data = MotionData(cfg.motion_data.motion_data_dir, cfg.motion_data.motion_data_weights)
+        self.motion_data = MotionData(cfg.motion_data.motion_data_dir, cfg.motion_data.motion_data_weights, device=cfg.sim.device)
         super().__init__(cfg=cfg, render_mode=render_mode, **kwargs)
 
     
