@@ -1,0 +1,1520 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<robot
+  name="ths_23dof">
+
+  <!-- ============================基座============================== -->
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="0.000199 0 -0.067893"
+        rpy="0 0 0" />
+      <mass
+        value="2.2722" />
+      <inertia
+        ixx="0.005129"
+        ixy="0"
+        ixz="1.2E-05"
+        iyy="0.003522"
+        iyz="0"
+        izz="0.004347" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- ============================左腿============================== -->
+  <!-- 左腿俯仰 -->
+  <link
+    name="left_hip_pitch_link">
+    <inertial>
+      <origin
+        xyz="-0.004492 0.056734 0"
+        rpy="0 0 0" />
+      <mass
+        value="1.0672" />
+      <inertia
+        ixx="0.001396"
+        ixy="1.1E-05"
+        ixz="0"
+        iyy="0.000886"
+        iyz="0"
+        izz="0.001034" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_hip_pitch_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_hip_pitch_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_hip_pitch_joint"
+    type="revolute">
+    <origin
+      xyz="0 0.058 -0.069"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="left_hip_pitch_link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      lower="-1.0"
+      upper="1.3"
+      effort="60"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 左腿横滚 -->
+  <link
+    name="left_hip_roll_link">
+    <inertial>
+      <origin
+        xyz="0.015477 0 -0.044856"
+        rpy="0 0 0" />
+      <mass
+        value="0.25342" />
+      <inertia
+        ixx="0.000473"
+        ixy="0"
+        ixz="-9.7E-05"
+        iyy="0.00044"
+        iyz="0"
+        izz="0.000173" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_hip_roll_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_hip_roll_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_hip_roll_joint"
+    type="revolute">
+    <origin
+      xyz="0.00475 0.062 0"
+      rpy="0 0 0" />
+    <parent
+      link="left_hip_pitch_link" />
+    <child
+      link="left_hip_roll_link" />
+    <axis
+      xyz="-1 0 0" />
+    <limit
+      lower="-1.2"
+      upper="0.09"
+      effort="60"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 左腿航向 -->
+  <link
+    name="left_hip_yaw_link">
+    <inertial>
+      <origin
+        xyz="5.9E-05 -0.001732 -0.11073"
+        rpy="0 0 0" />
+      <mass
+        value="2.3094" />
+      <inertia
+        ixx="0.020574"
+        ixy="-6E-06"
+        ixz="-9E-06"
+        iyy="0.020854"
+        iyz="-0.000399"
+        izz="0.002254" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_hip_yaw_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_hip_yaw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_hip_yaw_joint"
+    type="revolute">
+    <origin
+      xyz="-0.002 0 -0.094"
+      rpy="0 0 0" />
+    <parent
+      link="left_hip_roll_link" />
+    <child
+      link="left_hip_yaw_link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.0"
+      upper="1.0"
+      effort="20"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 左腿膝 -->
+  <link
+    name="left_knee_link">
+    <inertial>
+      <origin
+        xyz="-0.005596 0.001981 -0.12989"
+        rpy="0 0 0" />
+      <mass
+        value="0.93815" />
+      <inertia
+        ixx="0.005683"
+        ixy="-3.1E-05"
+        ixz="4.3E-05"
+        iyy="0.005794"
+        iyz="-0.000479"
+        izz="0.000695" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_knee_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_knee_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_knee_joint"
+    type="revolute">
+    <origin
+      xyz="0 0.00475 -0.211"
+      rpy="0 0 0" />
+    <parent
+      link="left_hip_yaw_link" />
+    <child
+      link="left_knee_link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      lower="-2.0"
+      upper="0.3"
+      effort="60"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 左腿踝府仰 -->
+  <link
+    name="left_ankle_pitch_link">
+    <inertial>
+      <origin
+        xyz="-0.000774 0.006616 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.13368" />
+      <inertia
+        ixx="3.9E-05"
+        ixy="-4E-06"
+        ixz="0"
+        iyy="3.3E-05"
+        iyz="0"
+        izz="6.3E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_ankle_pitch_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_ankle_pitch_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_ankle_pitch_joint"
+    type="revolute">
+    <origin
+      xyz="0 -0.013 -0.335"
+      rpy="0 0 0" />
+    <parent
+      link="left_knee_link" />
+    <child
+      link="left_ankle_pitch_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-0.7"
+      upper="0.7"
+      effort="16"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 左腿踝横滚 -->
+  <link
+    name="left_ankle_roll_link">
+    <inertial>
+      <origin
+        xyz="0.043554 0 -0.016299"
+        rpy="0 0 0" />
+      <mass
+        value="0.73415" />
+      <inertia
+        ixx="0.000514"
+        ixy="0"
+        ixz="-7.5E-05"
+        iyy="0.001935"
+        iyz="0"
+        izz="0.001885" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_ankle_roll_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_ankle_roll_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_ankle_roll_joint"
+    type="revolute">
+    <origin
+      xyz="0.01 0.01 0"
+      rpy="0 0 0" />
+    <parent
+      link="left_ankle_pitch_link" />
+    <child
+      link="left_ankle_roll_link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-0.6"
+      upper="0.6"
+      effort="16"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+
+
+  <!-- ============================右腿============================== -->
+  <!-- 右腿俯仰 -->
+  <link
+    name="right_hip_pitch_link">
+    <inertial>
+      <origin
+        xyz="-0.004492 -0.056734 0"
+        rpy="0 0 0" />
+      <mass
+        value="1.0672" />
+      <inertia
+        ixx="0.001396"
+        ixy="-1.1E-05"
+        ixz="0"
+        iyy="0.000886"
+        iyz="0"
+        izz="0.001034" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_hip_pitch_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_hip_pitch_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_hip_pitch_joint"
+    type="revolute">
+    <origin
+      xyz="0 -0.058 -0.069"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="right_hip_pitch_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-1.3"
+      upper="1.0"
+      effort="60"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 右腿横滚 -->
+  <link
+    name="right_hip_roll_link">
+    <inertial>
+      <origin
+        xyz="0.015477 0 -0.044856"
+        rpy="0 0 0" />
+      <mass
+        value="0.25342" />
+      <inertia
+        ixx="0.000473"
+        ixy="0"
+        ixz="-9.7E-05"
+        iyy="0.00044"
+        iyz="0"
+        izz="0.000173" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_hip_roll_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_hip_roll_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_hip_roll_joint"
+    type="revolute">
+    <origin
+      xyz="0.00475 -0.062 0"
+      rpy="0 0 0" />
+    <parent
+      link="right_hip_pitch_link" />
+    <child
+      link="right_hip_roll_link" />
+    <axis
+      xyz="-1 0 0" />
+    <limit
+      lower="-0.09"
+      upper="1.2"
+      effort="60"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 右腿航向 -->
+  <link
+    name="right_hip_yaw_link">
+    <inertial>
+      <origin
+        xyz="-5.9E-05 0.001732 -0.11073"
+        rpy="0 0 0" />
+      <mass
+        value="2.3094" />
+      <inertia
+        ixx="0.020574"
+        ixy="-6E-06"
+        ixz="9E-06"
+        iyy="0.020854"
+        iyz="0.000399"
+        izz="0.002254" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_hip_yaw_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_hip_yaw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_hip_yaw_joint"
+    type="revolute">
+    <origin
+      xyz="-0.002 0 -0.094"
+      rpy="0 0 0" />
+    <parent
+      link="right_hip_roll_link" />
+    <child
+      link="right_hip_yaw_link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-1.0"
+      upper="1.0"
+      effort="20"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 右腿膝 -->
+  <link
+    name="right_knee_link">
+    <inertial>
+      <origin
+        xyz="-0.005577 -0.001967 -0.1299"
+        rpy="0 0 0" />
+      <mass
+        value="0.93872" />
+      <inertia
+        ixx="0.005683"
+        ixy="3.1E-05"
+        ixz="4.3E-05"
+        iyy="0.005795"
+        iyz="0.000479"
+        izz="0.000696" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_knee_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_knee_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_knee_joint"
+    type="revolute">
+    <origin
+      xyz="0 -0.00475 -0.211"
+      rpy="0 0 0" />
+    <parent
+      link="right_hip_yaw_link" />
+    <child
+      link="right_knee_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-0.3"
+      upper="2.0"
+      effort="60"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 右腿踝俯仰 -->
+  <link
+    name="right_ankle_pitch_link">
+    <inertial>
+      <origin
+        xyz="-0.000774 -0.006616 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.13368" />
+      <inertia
+        ixx="3.9E-05"
+        ixy="4E-06"
+        ixz="0"
+        iyy="3.3E-05"
+        iyz="0"
+        izz="6.3E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_ankle_pitch_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_ankle_pitch_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_ankle_pitch_joint"
+    type="revolute">
+    <origin
+      xyz="0 0.013 -0.335"
+      rpy="0 0 0" />
+    <parent
+      link="right_knee_link" />
+    <child
+      link="right_ankle_pitch_link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      lower="-0.7"
+      upper="0.7"
+      effort="16"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 右腿踝横滚 -->
+  <link
+    name="right_ankle_roll_link">
+    <inertial>
+      <origin
+        xyz="0.043554 0 -0.016299"
+        rpy="0 0 0" />
+      <mass
+        value="0.73415" />
+      <inertia
+        ixx="0.000514"
+        ixy="0"
+        ixz="-7.5E-05"
+        iyy="0.001935"
+        iyz="0"
+        izz="0.001885" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_ankle_roll_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_ankle_roll_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_ankle_roll_joint"
+    type="revolute">
+    <origin
+      xyz="0.01 -0.01 0"
+      rpy="0 0 0" />
+    <parent
+      link="right_ankle_pitch_link" />
+    <child
+      link="right_ankle_roll_link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-0.6"
+      upper="0.6"
+      effort="16"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+
+  <!-- ============================身体躯干============================== -->
+  <link
+    name="torso_link">
+    <inertial>
+      <origin
+        xyz="0.000324 -0.000361 0.1756"
+        rpy="0 0 0" />
+      <mass
+        value="6.4335" />
+      <inertia
+        ixx="0.091296"
+        ixy="1.6E-05"
+        ixz="-0.000291"
+        iyy="0.077429"
+        iyz="3.7E-05"
+        izz="0.022378" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/torso_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/torso_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="torso_joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0.0135"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="torso_link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-1.0"
+      upper="1.0"
+      effort="20"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+
+  <!-- ============================左手============================== -->
+  <!-- 左手肩俯仰 -->
+  <link
+    name="left_shoulder_pitch_link">
+    <inertial>
+      <origin
+        xyz="-0.000491 0.05059 -6E-06"
+        rpy="0 0 0" />
+      <mass
+        value="0.40728" />
+      <inertia
+        ixx="0.000237"
+        ixy="1E-06"
+        ixz="0"
+        iyy="0.000198"
+        iyz="0"
+        izz="0.000271" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_shoulder_pitch_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_shoulder_pitch_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_shoulder_pitch_joint"
+    type="revolute">
+    <origin
+      xyz="0 0.1195 0.3335"
+      rpy="0 0 0" />
+    <parent
+      link="torso_link" />
+    <child
+      link="left_shoulder_pitch_link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      lower="-2.0"
+      upper="2.0"
+      effort="15"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 左手肩横滚 -->
+  <link
+    name="left_shoulder_roll_link">
+    <inertial>
+      <origin
+        xyz="-0.003666 0.091862 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.54845" />
+      <inertia
+        ixx="0.000691"
+        ixy="2.4E-05"
+        ixz="-1E-06"
+        iyy="0.000336"
+        iyz="0"
+        izz="0.000815" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_shoulder_roll_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_shoulder_roll_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_shoulder_roll_joint"
+    type="revolute">
+    <origin
+      xyz="0.0045 0.056 0"
+      rpy="0 0 0" />
+    <parent
+      link="left_shoulder_pitch_link" />
+    <child
+      link="left_shoulder_roll_link" />
+    <axis
+      xyz="-1 0 0" />
+    <limit
+      lower="-2"
+      upper="2"
+      effort="13"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 左手肩航向 -->
+  <link
+    name="left_shoulder_yaw_link">
+    <inertial>
+      <origin
+        xyz="6E-06 0.03659 -0.000491"
+        rpy="0 0 0" />
+      <mass
+        value="0.40728" />
+      <inertia
+        ixx="0.000271"
+        ixy="0"
+        ixz="0"
+        iyy="0.000198"
+        iyz="1E-06"
+        izz="0.000237" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_shoulder_yaw_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_shoulder_yaw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_shoulder_yaw_joint"
+    type="revolute">
+    <origin
+      xyz="-0.00415 0.135 0"
+      rpy="0 0 0" />
+    <parent
+      link="left_shoulder_roll_link" />
+    <child
+      link="left_shoulder_yaw_link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      lower="-1.8"
+      upper="1.8"
+      effort="13"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 左手肘 -->
+  <link
+    name="left_elbow_link">
+    <inertial>
+      <origin
+        xyz="0 0.091862 -0.003666"
+        rpy="0 0 0" />
+      <mass
+        value="0.54845" />
+      <inertia
+        ixx="0.000815"
+        ixy="0"
+        ixz="1E-06"
+        iyy="0.000336"
+        iyz="2.4E-05"
+        izz="0.000691" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_elbow_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+   <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_elbow_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_elbow_joint"
+    type="revolute">
+    <origin
+      xyz="0 0.042 0.0045"
+      rpy="0 0 0" />
+    <parent
+      link="left_shoulder_yaw_link" />
+    <child
+      link="left_elbow_link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="0.0"
+      upper="2.0"
+      effort="13"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 左手腕横滚 -->
+  <link
+    name="left_wrist_roll_link">
+    <inertial>
+      <origin
+        xyz="1.4E-05 0.052386 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.17116" />
+      <inertia
+        ixx="0.000355"
+        ixy="0"
+        ixz="0"
+        iyy="9.6E-05"
+        iyz="0"
+        izz="0.000349" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_wrist_roll_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/left_wrist_roll_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_wrist_roll_joint"
+    type="revolute">
+    <origin
+      xyz="0 0.135 -0.00415"
+      rpy="0 0 0" />
+    <parent
+      link="left_elbow_link" />
+    <child
+      link="left_wrist_roll_link" />
+    <axis
+      xyz="0 -1 0" />                    
+    <limit
+      lower="-1.8"
+      upper="1.8"
+      effort="13"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+
+  <!-- ================================右手================================-->
+  <!-- 右肩俯仰 -->
+  <link
+    name="right_shoulder_pitch_link">
+    <inertial>
+      <origin
+        xyz="-0.000491 -0.05059 6E-06"
+        rpy="0 0 0" />
+      <mass
+        value="0.40728" />
+      <inertia
+        ixx="0.000237"
+        ixy="-1E-06"
+        ixz="0"
+        iyy="0.000198"
+        iyz="0"
+        izz="0.000271" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_shoulder_pitch_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_shoulder_pitch_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_shoulder_pitch_joint"
+    type="revolute">
+    <origin
+      xyz="0 -0.1195 0.3335"
+      rpy="0 0 0" />
+    <parent
+      link="torso_link" />
+    <child
+      link="right_shoulder_pitch_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-2.0"
+      upper="2.0"
+      effort="15"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 右手肩横滚 -->
+  <link
+    name="right_shoulder_roll_link">
+    <inertial>
+      <origin
+        xyz="-0.003666 -0.091862 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.54845" />
+      <inertia
+        ixx="0.000691"
+        ixy="-2.4E-05"
+        ixz="1E-06"
+        iyy="0.000336"
+        iyz="0"
+        izz="0.000815" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_shoulder_roll_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_shoulder_roll_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_shoulder_roll_joint"
+    type="revolute">
+    <origin
+      xyz="0.0045 -0.056 0"
+      rpy="0 0 0" />
+    <parent
+      link="right_shoulder_pitch_link" />
+    <child
+      link="right_shoulder_roll_link" />
+    <axis
+      xyz="-1 0 0" />
+    <limit
+      lower="-2"
+      upper="2"
+      effort="13"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 右手肩航向 -->
+  <link
+    name="right_shoulder_yaw_link">
+    <inertial>
+      <origin
+        xyz="-6E-06 -0.03659 -0.000491"
+        rpy="0 0 0" />
+      <mass
+        value="0.40728" />
+      <inertia
+        ixx="0.000271"
+        ixy="0"
+        ixz="0"
+        iyy="0.000198"
+        iyz="-1E-06"
+        izz="0.000237" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_shoulder_yaw_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_shoulder_yaw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_shoulder_yaw_joint"
+    type="revolute">
+    <origin
+      xyz="-0.00415 -0.135 0"
+      rpy="0 0 0" />
+    <parent
+      link="right_shoulder_roll_link" />
+    <child
+      link="right_shoulder_yaw_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-1.8"
+      upper="1.8"
+      effort="13"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 右手肘 -->
+  <link
+    name="right_elbow_link">
+    <inertial>
+      <origin
+        xyz="0 -0.091862 -0.003666"
+        rpy="0 0 0" />
+      <mass
+        value="0.54845" />
+      <inertia
+        ixx="0.000815"
+        ixy="0"
+        ixz="-1E-06"
+        iyy="0.000336"
+        iyz="-2.4E-05"
+        izz="0.000691" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_elbow_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_elbow_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_elbow_joint"
+    type="revolute">
+    <origin
+      xyz="0 -0.042 0.0045"
+      rpy="0 0 0" />
+    <parent
+      link="right_shoulder_yaw_link" />
+    <child
+      link="right_elbow_link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-2.0"
+      upper="0.0"
+      effort="13"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+  <!-- 右手腕横滚 -->
+  <link
+    name="right_wrist_roll_link">
+    <inertial>
+      <origin
+        xyz="-1.4E-05 -0.052386 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.17116" />
+      <inertia
+        ixx="0.000355"
+        ixy="0"
+        ixz="0"
+        iyy="9.6E-05"
+        iyz="0"
+        izz="0.000349" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_wrist_roll_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/right_wrist_roll_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_wrist_roll_joint"
+    type="revolute">
+    <origin
+      xyz="0 -0.135 -0.00415"
+      rpy="0 0 0" />
+    <parent
+      link="right_elbow_link" />
+    <child
+      link="right_wrist_roll_link" />
+    <axis
+      xyz="0 1 0" />                 
+    <limit
+      lower="-1.8"
+      upper="1.8"
+      effort="13"
+      velocity="10" />
+    <dynamics friction="0.0" damping="0.0"/>  <!-- 将关节摩擦和阻尼设为 0 -->
+  </joint>
+
+
+  <!-- =============================增加的虚拟坐标方便重映射对齐================================-->
+  <!-- 左手末端手掌 -->
+  <link
+    name="left_palm_link">
+  </link>
+  <joint name="left_palm_joint" type="fixed">
+    <origin
+      xyz="0 0.115 0"
+      rpy="0 0 0" />
+    <parent
+      link="left_wrist_roll_link" />
+    <child
+      link="left_palm_link" />
+  </joint>
+
+  <!-- 右手末端手掌 -->
+  <link
+    name="right_palm_link">
+  </link>
+  <joint name="right_palm_joint" type="fixed">
+    <origin
+      xyz="0 -0.115 0"
+      rpy="0 0 0" />
+    <parent
+      link="right_wrist_roll_link" />
+    <child
+      link="right_palm_link" />
+  </joint>
+
+
+  <!-- 左前脚趾 -->
+  <link name="left_leg_toe_link">
+  </link>
+  <joint name="left_leg_toe_joint" type="fixed">
+    <origin
+      xyz="0.15 0 -0.035"
+      rpy="0 0 0" />
+    <parent
+      link="left_ankle_roll_link" />
+    <child
+      link="left_leg_toe_link" />
+  </joint>
+  <!-- 左后脚跟 -->
+  <link name="left_leg_heel_link">
+  </link>
+  <joint name="left_leg_heel_joint" type="fixed">
+    <origin
+      xyz="-0.07 0 -0.035"
+      rpy="0 0 0" />
+    <parent
+      link="left_ankle_roll_link" />
+    <child
+      link="left_leg_heel_link" />
+  </joint>
+
+  <!-- 右前脚趾 -->
+  <link name="right_leg_toe_link">
+  </link>
+  <joint name="right_leg_toe_joint" type="fixed">
+    <origin
+      xyz="0.15 0 -0.035"
+      rpy="0 0 0" />
+    <parent
+      link="right_ankle_roll_link" />
+    <child
+      link="right_leg_toe_link" />
+  </joint>
+  <!-- 右后脚跟 -->
+  <link name="right_leg_heel_link">
+  </link>
+  <joint name="right_leg_heel_joint" type="fixed">
+    <origin
+      xyz="-0.07 0 -0.035"
+      rpy="0 0 0" />
+    <parent
+      link="right_ankle_roll_link" />
+    <child
+      link="right_leg_heel_link" />
+  </joint>
+
+</robot>
