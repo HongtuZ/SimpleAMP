@@ -135,12 +135,12 @@ class RslRlOnPolicyRunnerAmpCfg(RslRlOnPolicyRunnerCfg):
         lam=0.95,
         desired_kl=0.01,
         max_grad_norm=1.0,
-        symmetry_cfg=RslRlSymmetryCfg(
-            use_data_augmentation=True,
-            use_mirror_loss=True,
-            mirror_loss_coeff=0.1, # 0.1
-            data_augmentation_func=symmetry.compute_symmetric_states
-        ),
+        # symmetry_cfg=RslRlSymmetryCfg(
+        #     use_data_augmentation=True,
+        #     use_mirror_loss=True,
+        #     mirror_loss_coeff=0.1, # 0.1
+        #     data_augmentation_func=symmetry.compute_symmetric_states
+        # ),
         amp_cfg=RslRlAmpCfg(
             disc_obs_buffer_size=100,
             grad_penalty_scale=10.0,
@@ -152,7 +152,7 @@ class RslRlOnPolicyRunnerAmpCfg(RslRlOnPolicyRunnerCfg):
                 hidden_dims=[1024, 512],
                 activation="elu",
                 style_reward_scale=2.0,
-                task_style_lerp=0.3
+                task_style_lerp=1.0
             ),
             loss_type="LSGAN"
         ),

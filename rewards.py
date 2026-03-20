@@ -13,71 +13,96 @@ import isaaclab.utils.math as math_utils
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
     
-    
+
+
+
 def track_lin_vel_xy_exp(
     env: ManagerBasedRLEnv, std: float, command_name: str, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
-    """Reward tracking of linear velocity commands (xy axes) using exponential kernel."""
-    # extract the used quantities (to enable type-hinting)
+    """使用指数核函数奖励线性速度命令(xy 轴）的跟踪效果。"""
+    # 提取使用的量（以启用类型提示）
     asset: RigidObject = env.scene[asset_cfg.name]
-    # compute the error
+    # 计算误差                                                                            
     lin_vel_error = torch.sum(
         torch.square(env.command_manager.get_command(command_name)[:, :2] - asset.data.root_lin_vel_b[:, :2]),
         dim=1,
     )
-    # return torch.exp(-lin_vel_error / std**2)
-    reward = torch.exp(-lin_vel_error / std**2)
-    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
-    return reward
+    #return torch.exp(-lin_vel_error / std**2)                                               # 仅基于误差的指数奖励
+    reward = torch.exp(-lin_vel_error / std**2)                                              # 计算基础速度跟踪奖励（误差越小奖励越接近 1）
+    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7  # 乘以姿态系数：若机器人倾斜严重（重力 Z 投影异常），则降低奖励，直立时为 1.0
+    return reward                                                                            # 返回经过姿态修正后的最终奖励值
+
 
 
 def track_ang_vel_z_exp(
     env: ManagerBasedRLEnv, std: float, command_name: str, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
-    """Reward tracking of angular velocity commands (yaw) using exponential kernel."""
-    # extract the used quantities (to enable type-hinting)
+    """使用指数核函数奖励角速度命令（偏航轴 yaw）的跟踪效果。"""
+    # 提取使用的量（以启用类型提示）                                                              # 从场景中获取机器人刚体对象
     asset: RigidObject = env.scene[asset_cfg.name]
-    # compute the error
+    # 计算误差                                                                                # 计算命令角速度与本体实际角速度在 Z 轴（偏航）上的平方误差
     ang_vel_error = torch.square(env.command_manager.get_command(command_name)[:, 2] - asset.data.root_ang_vel_b[:, 2])
-    # return torch.exp(-ang_vel_error / std**2)
-    reward = torch.exp(-ang_vel_error / std**2)
-    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+    #return torch.exp(-ang_vel_error / std**2)                                               # 仅基于误差的指数奖励
+    reward = torch.exp(-ang_vel_error / std**2)                                              # 计算基础角速度跟踪奖励（误差越小奖励越接近 1）
+    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7  # 乘以姿态系数：若机器人倾斜严重（重力 Z 投影异常），则降低奖励，直立时为 1.0
+    return reward                                                                            # 返回经过姿态修正后的最终奖励值
+
+
+def track_ang_vel_z_l2(
+    env: ManagerBasedRLEnv, command_name: str, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+) -> torch.Tensor:
+    """ 使用线性（类L2）衰减对角速度指令（偏航）进行奖励跟踪。.""" 
+    asset: RigidObject = env.scene[asset_cfg.name]
+    ang_vel_error = torch.abs(env.command_manager.get_command(command_name)[:, 2] - asset.data.root_ang_vel_b[:, 2])
+    ang_vel_error = torch.clamp(ang_vel_error, min=0.0, max=1.0)           # 将误差控制在0-1
+    reward = 1.0 - ang_vel_error
+
     return reward
 
 
+
 def is_alive(env: ManagerBasedRLEnv) -> torch.Tensor:
-    """Reward for being alive."""
+    """存活奖赏."""
     return (~env.termination_manager.terminated).float()
 
 
 def lin_vel_z_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
-    """Penalize z-axis base linear velocity using L2 squared kernel."""
+    """使用L2平方核函数对z轴基线速度进行惩罚."""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return torch.square(asset.data.root_lin_vel_b[:, 2])
 
 
 def ang_vel_xy_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
-    """Penalize xy-axis base angular velocity using L2 squared kernel."""
+    """ 使用L2平方核函数对xy轴基角速度进行惩罚 """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return torch.sum(torch.square(asset.data.root_ang_vel_b[:, :2]), dim=1)
 
 
 def flat_orientation_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
-    """Penalize non-flat base orientation using L2 squared kernel.
-
-    This is computed by penalizing the xy-components of the projected gravity vector.
+    """ 使用L2平方核函数对非平面基方向进行惩罚
+        这是通过惩罚投影重力向量的xy分量来计算的.
     """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return torch.sum(torch.square(asset.data.projected_gravity_b[:, :2]), dim=1)
 
+def flat_orientation_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:  
+    """ 使用 L2 平方核惩罚非水平的基座朝向
+        计算方式：通过惩罚投影重力向量的 X 和 Y 分量来实现
+    """
+    # 提取使用的变量（以启用类型提示）
+    asset: RigidObject = env.scene[asset_cfg.name]                                # 获取场景中的机器人资产对象（刚性物体）
+    return torch.sum(torch.square(asset.data.projected_gravity_b[:, :2]), dim=1)  # 返回投影重力向量前两个分量（X, Y）的平方和（即 L2 范数的平方）
+
+
 
 def joint_vel_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
-    """Penalize joint velocities on the articulation using L2 squared kernel.
+    """ 使用L2平方核惩罚关节处的关节速度.
 
     NOTE: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their joint velocities contribute to the term.
+          只有配置在:attr:`asset_cfg.joint_ids`中的关节，其关节速度才会对该项做出贡献
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
@@ -85,9 +110,10 @@ def joint_vel_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntity
 
 
 def joint_acc_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
-    """Penalize joint accelerations on the articulation using L2 squared kernel.
+    """ 使用L2平方核惩罚关节处的联合加速度.
 
     NOTE: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their joint accelerations contribute to the term.
+          只有配置在:attr:`asset_cfg.joint_ids`中的关节，其关节加速度才会对该项做出贡献
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
@@ -95,46 +121,51 @@ def joint_acc_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntity
 
 
 def joint_deviation_l1(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
-    """Penalize joint positions that deviate from the default one."""
-    # extract the used quantities (to enable type-hinting)
-    asset: Articulation = env.scene[asset_cfg.name]
-    # compute out of limits constraints
+    """惩罚偏离默认位置的关节角度。"""                                       
+    asset: Articulation = env.scene[asset_cfg.name]                       
+    # 计算当前关节角度与默认角度的差值 (偏差)
     angle = asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]
-    return torch.sum(torch.abs(angle), dim=1)
+    return torch.sum(torch.abs(angle), dim=1)                             # 返回所有指定关节偏差绝对值的总和 (L1 范数)
+
+
 
 
 def joint_pos_limits(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
-    """Penalize joint positions if they cross the soft limits.
+    """惩罚关节位置如果它们超出软限制。
 
-    This is computed as a sum of the absolute value of the difference between the joint position and the soft limits.
+    计算方法为：关节位置与软限制之间差值的绝对值之和。
     """
-    # extract the used quantities (to enable type-hinting)
+    # 提取使用的量（以启用类型提示）
     asset: Articulation = env.scene[asset_cfg.name]
-    # compute out of limits constraints
-    out_of_limits = -(
+    # 计算超出限制约束
+    out_of_limits = -(                                                                                      # 计算低于下限的违规量
         asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.soft_joint_pos_limits[:, asset_cfg.joint_ids, 0]
-    ).clip(max=0.0)
-    out_of_limits += (
+    ).clip(max=0.0)                                                                                         # 仅保留负值部分（即低于下限的部分）并取反为正
+    out_of_limits += (                                                                                      # 加上高于上限的违规量
         asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.soft_joint_pos_limits[:, asset_cfg.joint_ids, 1]
-    ).clip(min=0.0)
-    return torch.sum(out_of_limits, dim=1)
+    ).clip(min=0.0)                                                                                         # 仅保留正值部分（即高于上限的部分）
+    return torch.sum(out_of_limits, dim=1)                                                                  # 沿关节维度求和，返回每个环境的总违规值
+
+
 
 
 def action_rate_l2(env: ManagerBasedRLEnv) -> torch.Tensor:
-    """Penalize the rate of change of the actions using L2 squared kernel."""
+    """ 使用L2平方核惩罚动作的变化率."""
     return torch.sum(torch.square(env.action_manager.action - env.action_manager.prev_action), dim=1)
 
 
 def joint_torques_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
-    """Penalize joint torques applied on the articulation using L2 squared kernel.
+    """ 使用L2平方核函数对施加在关节上的联合扭矩进行惩罚.
 
     NOTE: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their joint torques contribute to the term.
+          只有配置在:attr:`asset_cfg.joint_ids`中的关节，其关节扭矩才会对该项做出贡献
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     return torch.sum(torch.square(asset.data.applied_torque[:, asset_cfg.joint_ids]), dim=1)
 
-
+# 计算机器人双脚在身体坐标系下的横向（Y轴）距离，并奖励该距离保持在指定范围 [min, max] 内的情况
+# 当双脚间距在理想范围内时返回接近 1.0 的高分；当间距过小或过大时，分数会呈指数级迅速衰减趋近于 0
 def feet_distance_y(
     env: ManagerBasedRLEnv, 
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"), 
@@ -162,28 +193,28 @@ def feet_stumble(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg) -> torch.Te
     reward = torch.any(forces_xy > 4 * forces_z, dim=1).float()
     return reward
 
-def feet_air_time(
-    env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, threshold: float
-) -> torch.Tensor:
-    """Reward long steps taken by the feet using L2-kernel.
 
-    This function rewards the agent for taking steps that are longer than a threshold. This helps ensure
-    that the robot lifts its feet off the ground and takes steps. The reward is computed as the sum of
-    the time for which the feet are in the air.
-
-    If the commands are small (i.e. the agent is not supposed to take a step), then the reward is zero.
+def feet_air_time(                                                               
+    env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, threshold: float  
+) -> torch.Tensor:                                                                
     """
-    # extract the used quantities (to enable type-hinting)
-    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
-    # compute the reward
-    first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
-    last_air_time = contact_sensor.data.last_air_time[:, sensor_cfg.body_ids]
-    # 只对超过 threshold 的空中时间给予正奖励（防止负值惩罚）
-    positive_air = torch.clamp(last_air_time - threshold, min=0.0)
-    reward = torch.sum(positive_air * first_contact.float(), dim=1)
-    # no reward for zero command
-    reward *= (torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) > 0.1).float()
-    return reward
+        计算脚部腾空时间奖励
+        使用 L2 核函数奖励脚部长步幅行走
+        说明：该函数奖励智能体迈出超过阈值的步长，确保机器人抬脚迈步
+        计算方式：累加脚部处于腾空状态的时间
+        特殊情况：若命令速度很小（无需迈步），则奖励为零
+    """
+    # extract the used quantities (to enable type-hinting)                       # 提取使用的变量（以启用类型提示）
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]           # 获取场景中的接触传感器对象
+    # compute the reward                                                         # 计算奖励值
+    first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]  # 计算当前步长内是否首次接触地面（布尔值）
+    last_air_time = contact_sensor.data.last_air_time[:, sensor_cfg.body_ids]    # 获取上次腾空的持续时间
+    positive_air = torch.clamp(last_air_time - threshold, min=0.0)               # 计算超出阈值的腾空时间（小于0则截断为0）
+    reward = torch.sum(positive_air * first_contact.float(), dim=1)              # 求和：仅当脚刚落地时，累加其之前的超额腾空时间
+    # no reward for zero command                                                 # 零命令时无奖励
+    reward *= (torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) > 0.1).float()  # 掩码：仅当水平速度命令大于 0.1 时才保留奖励
+    return reward                                                                 # 返回最终奖励值
+
 
 
 def feet_air_time_positive_biped(
@@ -192,42 +223,42 @@ def feet_air_time_positive_biped(
     threshold: float, 
     sensor_cfg: SceneEntityCfg,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
-    ) -> torch.Tensor:
-    """Reward long steps taken by the feet for bipeds.
-
-    This function rewards the agent for taking steps up to a specified threshold and also keep one foot at
-    a time in the air.
-
-    If the commands are small (i.e. the agent is not supposed to take a step), then the reward is zero.
+) -> torch.Tensor:
+    """奖励双足机器人迈步时脚部在空中的时间。
+       该函数鼓励智能体单次迈步时间不超过指定阈值，并始终保持**仅一只脚离地**（即交替迈步）。
+    
+       若运动指令很小（即不应迈步），则不给予奖励。
     """
-    asset: Articulation = env.scene["robot"]
-    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
-    # compute the reward
+    asset: Articulation = env.scene["robot"]                                                # 获取机器人实体（此处未实际使用）
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]                      # 获取接触传感器数据
+
+    # 计算奖励                                                                               # 获取每只脚当前的离地时间（air time）
     air_time = contact_sensor.data.current_air_time[:, sensor_cfg.body_ids]
-    contact_time = contact_sensor.data.current_contact_time[:, sensor_cfg.body_ids]
-    in_contact = contact_time > 0.0
-    in_mode_time = torch.where(in_contact, contact_time, air_time)
-    single_stance = torch.sum(in_contact.int(), dim=1) == 1
-    reward = torch.min(torch.where(single_stance.unsqueeze(-1), in_mode_time, 0.0), dim=1)[0]
-    reward = torch.clamp(reward, max=threshold)
-    # no reward for zero command
+    contact_time = contact_sensor.data.current_contact_time[:, sensor_cfg.body_ids]        # 获取每只脚当前的触地时间
+    in_contact = contact_time > 0.0                                                        # 判断每只脚是否处于触地状态（布尔张量）
+    in_mode_time = torch.where(in_contact, contact_time, air_time)                         # 触地时用触地时间，离地时用离地时间（实际仅离地时间用于奖励）
+    single_stance = torch.sum(in_contact.int(), dim=1) == 1                                # 判断是否恰好有一只脚触地（即另一只脚在空中）
+    reward = torch.min(torch.where(single_stance.unsqueeze(-1), in_mode_time, 0.0), dim=1)[0]  # 仅当满足单支撑相时，取两只脚中有效的“模式时间”（实为离地时间）的最小值 → 即离地那只脚的时间
+    reward = torch.clamp(reward, max=threshold)                                            # 将奖励限制在 [0, threshold] 范围内
+
+    # 指令为零时不给奖励                                                                      # 若 xy 平面指令速度小于 0.1，则奖励置零（避免静止时误奖）
     reward *= torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) > 0.1
     return reward
 
 
+# 惩罚动作的变化量  
 def smoothness_1(env: ManagerBasedRLEnv) -> torch.Tensor:
-    # Penalize changes in actions
+                                                                                              # 计算当前动作与上一帧动作差值的平方
     diff = torch.square(env.action_manager.action - env.action_manager.prev_action)
-    diff = diff * (env.action_manager.prev_action[:, :] != 0)  # ignore first step
-    return torch.sum(diff, dim=1)
+    diff = diff * (env.action_manager.prev_action[:, :] != 0)                                 # 忽略第一步（prev_action为0时），防止初始随机噪声产生巨大惩罚
+    return torch.sum(diff, dim=1)                                                             # 沿动作维度求和，返回每个环境的总平滑度惩罚值
 
 
 def feet_orientation_l2(env: ManagerBasedRLEnv, 
                           sensor_cfg: SceneEntityCfg, 
                           asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
-    """Penalize feet orientation not parallel to the ground when in contact.
-
-    This is computed by penalizing the xy-components of the projected gravity vector.
+    """ 当脚部与地面接触时，若其方向与地面不平行，则应受到处罚
+        这是通过惩罚投影重力向量的xy分量来计算的
     """
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     asset:RigidObject = env.scene[asset_cfg.name]
@@ -249,14 +280,14 @@ def feet_orientation_l2(env: ManagerBasedRLEnv,
 def stand_still_joint_deviation_l1(
     env: ManagerBasedRLEnv, command_name: str, command_threshold: float = 0.06, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
-    """Penalize offsets from the default joint positions when the command is very small."""
+    """ 当指令非常小时，对偏离默认关节位置的偏移进行惩罚."""
     command = env.command_manager.get_command(command_name)
     # Penalize motion when command is nearly zero.
     return mdp.joint_deviation_l1(env, asset_cfg) * (torch.norm(command[:, :2], dim=1) < command_threshold)
 
 
 def joint_energy(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
-    """Penalize the energy used by the robot's joints."""
+    """ 对机器人关节所消耗的能量进行惩罚"""
     asset = env.scene[asset_cfg.name]
 
     qvel = asset.data.joint_vel[:, asset_cfg.joint_ids]
@@ -266,11 +297,8 @@ def joint_energy(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntity
 def feet_slide(
     env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
-    """Penalize feet sliding.
-
-    This function penalizes the agent for sliding its feet on the ground. The reward is computed as the
-    norm of the linear velocity of the feet multiplied by a binary contact sensor. This ensures that the
-    agent is penalized only when the feet are in contact with the ground.
+    """ 对滑步进行处罚.
+        此函数会惩罚智能体在地面上滑动其脚部。奖励的计算方法是脚部线速度的范数乘以一个二进制接触传感器。这确保了只有当脚部与地面接触时，智能体才会受到惩罚。
     """
     # Penalize feet sliding
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
@@ -292,7 +320,7 @@ def feet_slide(
     return reward
 
 def upward(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
-    """Penalize z-axis base linear velocity using L2 squared kernel."""
+    """ 使用L2平方核函数对z轴基线速度进行惩罚."""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     reward = torch.square(1 - asset.data.projected_gravity_b[:, 2])
@@ -346,7 +374,7 @@ def sound_suppression_acc_per_foot(
 
 
 def undesired_contacts(env: ManagerBasedRLEnv, threshold: float, sensor_cfg: SceneEntityCfg) -> torch.Tensor:
-    """Penalize undesired contacts as the number of violations that are above a threshold."""
+    """ 当违规次数超过阈值时，对非预期接触进行处罚."""
     # extract the used quantities (to enable type-hinting)
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     # check if contact force is above threshold
@@ -356,32 +384,32 @@ def undesired_contacts(env: ManagerBasedRLEnv, threshold: float, sensor_cfg: Sce
     return torch.sum(is_contact, dim=1)
 
 
+
 def low_speed_sway_penalty(
     env: ManagerBasedRLEnv, command_name: str, command_threshold: float = 0.1, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
-    """Penalize linear and angular velocities when command velocity is below threshold.
-    
-    This function penalizes the robot for moving (both linear and angular) when the command
-    speed is very small, encouraging the robot to remain still during low-speed commands.
+    """当命令速度低于阈值时，惩罚线速度和角速度。
+
+    此函数在命令速度非常小时惩罚机器人的运动（包括线速度和角速度），
+    鼓励机器人在低速命令期间保持静止。
     """
-    # extract the used quantities (to enable type-hinting)
+    # 提取使用的量（以启用类型提示）                                                              # 获取场景中的刚体资产对象
     asset: RigidObject = env.scene[asset_cfg.name]
     
-    # Get command velocity
+    # 获取命令速度                                                                                   # 从命令管理器获取指定名称的命令张量
     command = env.command_manager.get_command(command_name)
-    command_speed = torch.norm(command[:, :2], dim=1)
-    
-    # Penalize linear velocity in xy plane
+    command_speed = torch.norm(command[:, :2], dim=1)                                               # 计算命令在水平面 (x, y) 上的速度范数
+    # 惩罚 xy 平面内的线速度                                                                         # 计算机器人本体坐标系下水平线速度的平方和
     lin_vel_penalty = torch.sum(torch.square(asset.data.root_lin_vel_b[:, :2]), dim=1)
-    
-    # Penalize angular velocity
+    # 惩罚角速度                                                                                     # 计算机器人本体坐标系下角速度的平方和
     ang_vel_penalty = torch.sum(torch.square(asset.data.root_ang_vel_b), dim=1)
-    
-    # Total velocity penalty
+    # 总速度惩罚                                                                                     # 合并线速度和角速度的惩罚项
     vel_penalty = lin_vel_penalty + ang_vel_penalty
-    
-    # Apply penalty only when command speed is below threshold
+    # 仅当命令速度低于阈值时应用惩罚                                                                 # 生成掩码并转换为浮点数，低速时保留惩罚值，高速时归零
     return vel_penalty * (command_speed < command_threshold).float()
+
+
+
 
 
 def staged_navigation_reward(
@@ -560,7 +588,23 @@ def foot_clearance_reward(
 
     return reward
 
-                                                                          # 返回非负标量，作为惩罚值（通常在奖励中取负）
+
+# 惩罚双脚横向Y距离 “太近 或 太远”
+def feet_y_distance(
+    env: ManagerBasedRLEnv, threshold = (0.2, 0.3), asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+) -> torch.Tensor:
+    asset: Articulation = env.scene[asset_cfg.name]                                                    # 获取机器人实体
+    feet_pos = asset.data.body_pos_w[:, asset_cfg.body_ids, :]                                         # 获取指定足端的世界坐标位置 (N, num_feet, 3)
+    distance = torch.abs(feet_pos[:, 0,1] - feet_pos[:, 1,1])                                          # 计算两只脚之间的距离 (N,)
+    min_dist, max_dist = threshold                                                                     # 解包最小和最大允许距离
+
+    # Compute how much the distance violates the bounds
+    violation_low = torch.clamp(min_dist - distance, min=0.0)   # >0 if too close                      # 距离过小的违反量（脚太近）
+    violation_high = torch.clamp(distance - max_dist, min=0.0)  # >0 if too far                        # 距离过大的违反量（脚太远）
+
+    # Total violation magnitude
+    total_violation = violation_low + violation_high  # >= 0                                           # 总违反量（越界程度之和）
+    return total_violation                                                                             # 返回非负标量，作为惩罚值（通常在奖励中取负）
 
 
 

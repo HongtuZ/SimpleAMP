@@ -165,7 +165,7 @@ class MotionData():
         motion_seq_times = start_times.reshape(-1,1) + torch.arange(n_steps, device=self.device).reshape(1,-1)*dt # (ids, steps)
         return motion_seq_times
 
-    def get_motion_data(self, motion_ids: torch.Tensor, motion_times: torch.Tensor, joint_names: list = None, body_names: list = None) -> torch.Tensor:
+    def get_motion_data(self, motion_ids: torch.Tensor, motion_times: torch.Tensor, joint_names: list = None, body_names: list = None) -> dict[str, torch.Tensor]:
         if motion_ids.shape != motion_times.shape:
             raise ValueError(f'motion_ids shape {motion_ids.shape} should be equal with motion_times shape {motion_times.shape}')
 
