@@ -15,101 +15,115 @@ THS23DOF_CFG = ArticulationCfg(
             max_angular_velocity=1000.0,
             max_depenetration_velocity=1.0,
         ),
-        articulation_props = sim_utils.ArticulationRootPropertiesCfg(
+        articulation_props=sim_utils.ArticulationRootPropertiesCfg(
             enabled_self_collisions=True,
             solver_position_iteration_count=8,
             solver_velocity_iteration_count=4,
         ),
     ),
-    init_state=ArticulationCfg.InitialStateCfg( 
+    init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.752),
-        joint_pos={      
-            "left_hip_pitch_joint": 0.3,
+        joint_pos={
+            "left_hip_pitch_joint": 0.2,
             "left_hip_roll_joint": 0.0,
             "left_hip_yaw_joint": 0.0,
-            "left_knee_joint": -0.6,
+            "left_knee_joint": -0.5,
             "left_ankle_pitch_joint": -0.3,
             "left_ankle_roll_joint": 0.0,
-            "right_hip_pitch_joint": -0.3,
+            "right_hip_pitch_joint": -0.2,
             "right_hip_roll_joint": 0.0,
             "right_hip_yaw_joint": 0.0,
-            "right_knee_joint": 0.6,
+            "right_knee_joint": 0.5,
             "right_ankle_pitch_joint": 0.3,
             "right_ankle_roll_joint": 0.0,
             "torso_joint": 0.0,
             "left_shoulder_pitch_joint": 0.0,
-            "left_shoulder_roll_joint": 1.3,
-            "left_shoulder_yaw_joint": -0.6,
+            "left_shoulder_roll_joint": 1.4,
+            "left_shoulder_yaw_joint": 0.0,
             "left_elbow_joint": 0.3,
             "left_wrist_roll_joint": 0.0,
             "right_shoulder_pitch_joint": 0.0,
-            "right_shoulder_roll_joint": -1.3,
-            "right_shoulder_yaw_joint": 0.6,
+            "right_shoulder_roll_joint": -1.4,
+            "right_shoulder_yaw_joint": 0.0,
             "right_elbow_joint": -0.3,
             "right_wrist_roll_joint": 0.0,
         },
         joint_vel={".*": 0.0},
     ),
     soft_joint_pos_limit_factor=0.90,
-    actuators={                                                         
+    actuators={
         "legs": DelayedPDActuatorCfg(
-            joint_names_expr=[    
+            joint_names_expr=[
                 ".*_hip_pitch_joint",
                 ".*_hip_roll_joint",
                 ".*_hip_yaw_joint",
                 ".*_knee_joint",
             ],
-            effort_limit_sim={              
-                ".*_hip_pitch_joint":  50,
-                ".*_hip_roll_joint":   50,
-                ".*_hip_yaw_joint":    30,
-                ".*_knee_joint":       50,
+            effort_limit_sim={
+                ".*_hip_pitch_joint": 30,
+                ".*_hip_roll_joint": 30,
+                ".*_hip_yaw_joint": 20,
+                ".*_knee_joint": 30,
             },
-            velocity_limit_sim={         
-                ".*_hip_pitch_joint":  10,
-                ".*_hip_roll_joint":   10,
-                ".*_hip_yaw_joint":    10,
-                ".*_knee_joint":       10,
+            velocity_limit_sim={
+                ".*_hip_pitch_joint": 10,
+                ".*_hip_roll_joint": 10,
+                ".*_hip_yaw_joint": 10,
+                ".*_knee_joint": 10,
             },
-            stiffness={                                                 
-                ".*_hip_pitch_joint":  100,
-                ".*_hip_roll_joint":   100,
-                ".*_hip_yaw_joint":    30,
-                ".*_knee_joint":       100,
-
+            stiffness={
+                ".*_hip_pitch_joint": 60,
+                ".*_hip_roll_joint": 60,
+                ".*_hip_yaw_joint": 30,
+                ".*_knee_joint": 60,
             },
-            damping={                                                    
-                ".*_hip_pitch_joint":  3,
-                ".*_hip_roll_joint":   3,
-                ".*_hip_yaw_joint":    2,
-                ".*_knee_joint":       3,
+            damping={
+                ".*_hip_pitch_joint": 2.5,
+                ".*_hip_roll_joint": 2.5,
+                ".*_hip_yaw_joint": 1.5,
+                ".*_knee_joint": 2.5,
             },
-            armature=0.01,
+            armature=0.02,
             min_delay=0,
             max_delay=2,
         ),
-        "feet": DelayedPDActuatorCfg(
-            joint_names_expr=[                                              
+        "feet_pitch": DelayedPDActuatorCfg(
+            joint_names_expr=[
                 ".*_ankle_pitch_joint",
+            ],
+            effort_limit_sim={
+                ".*_ankle_pitch_joint": 10,
+            },
+            velocity_limit_sim={
+                ".*_ankle_pitch_joint": 10,
+            },
+            stiffness={
+                ".*_ankle_pitch_joint": 20,
+            },
+            damping={
+                ".*_ankle_pitch_joint": 1.2,
+            },
+            armature=0.0042,
+            min_delay=0,
+            max_delay=2,
+        ),
+        "feet_roll": DelayedPDActuatorCfg(
+            joint_names_expr=[
                 ".*_ankle_roll_joint",
             ],
-            effort_limit_sim={                                              
-                ".*_ankle_pitch_joint":  15,
-                ".*_ankle_roll_joint":   12,
+            effort_limit_sim={
+                ".*_ankle_roll_joint": 12,
             },
-            velocity_limit_sim={                                            
-                ".*_ankle_pitch_joint":  10,
-                ".*_ankle_roll_joint":   10,
+            velocity_limit_sim={
+                ".*_ankle_roll_joint": 10,
             },
-            stiffness={                                                     
-                ".*_ankle_pitch_joint":  30,
-                ".*_ankle_roll_joint":   20,
+            stiffness={
+                ".*_ankle_roll_joint": 5,
             },
-            damping={                                                      
-                ".*_ankle_pitch_joint":  1.5,
-                ".*_ankle_roll_joint":   1,
+            damping={
+                ".*_ankle_roll_joint": 0.3,
             },
-            armature=0.01,
+            armature=0.001,
             min_delay=0,
             max_delay=2,
         ),
@@ -117,59 +131,89 @@ THS23DOF_CFG = ArticulationCfg(
             joint_names_expr=[
                 "torso_joint",
             ],
-            effort_limit_sim={                                            
-                "torso_joint":           20,
+            effort_limit_sim={
+                "torso_joint": 20,
             },
-            velocity_limit_sim={                                           
-                "torso_joint":           10,
+            velocity_limit_sim={
+                "torso_joint": 10,
             },
-            stiffness={                                                   
-                "torso_joint":           20,
+            stiffness={
+                "torso_joint": 20,
             },
-            damping={                                                     
-                "torso_joint":           1.5,
+            damping={
+                "torso_joint": 1.0,
             },
-            armature=0.01,
+            armature=0.012,
             min_delay=0,
             max_delay=2,
         ),
-        "arms": DelayedPDActuatorCfg(
-            joint_names_expr=[                                             
+        "arms_pitch": DelayedPDActuatorCfg(
+            joint_names_expr=[
                 ".*_shoulder_pitch_joint",
+            ],
+            effort_limit_sim={
+                ".*_shoulder_pitch_joint": 5,
+            },
+            velocity_limit_sim={
+                ".*_shoulder_pitch_joint": 10,
+            },
+            stiffness={
+                ".*_shoulder_pitch_joint": 30,
+            },
+            damping={
+                ".*_shoulder_pitch_joint": 1.5,
+            },
+            armature=0.0042,
+            min_delay=0,
+            max_delay=2,
+        ),
+        "arms_other": DelayedPDActuatorCfg(
+            joint_names_expr=[
                 ".*_shoulder_roll_joint",
                 ".*_shoulder_yaw_joint",
                 ".*_elbow_joint",
+            ],
+            effort_limit_sim={
+                ".*_shoulder_roll_joint": 5,
+                ".*_shoulder_yaw_joint": 5,
+                ".*_elbow_joint": 5,
+            },
+            velocity_limit_sim={
+                ".*_shoulder_roll_joint": 10,
+                ".*_shoulder_yaw_joint": 10,
+                ".*_elbow_joint": 10,
+            },
+            stiffness={
+                ".*_shoulder_roll_joint": 30,
+                ".*_shoulder_yaw_joint": 10,
+                ".*_elbow_joint": 10,
+            },
+            damping={
+                ".*_shoulder_roll_joint": 1.5,
+                ".*_shoulder_yaw_joint": 0.6,
+                ".*_elbow_joint": 0.6,
+            },
+            armature=0.001,
+            min_delay=0,
+            max_delay=2,
+        ),
+        "arms_end": DelayedPDActuatorCfg(
+            joint_names_expr=[
                 ".*_wrist_roll_joint",
             ],
-            effort_limit_sim={                                            
-                ".*_shoulder_pitch_joint":  15,
-                ".*_shoulder_roll_joint":   12,
-                ".*_shoulder_yaw_joint":    12,
-                ".*_elbow_joint":           12,
-                ".*_wrist_roll_joint":      12,
+            effort_limit_sim={
+                ".*_wrist_roll_joint": 1.0,
             },
-            velocity_limit_sim={                                           
-                ".*_shoulder_pitch_joint":  10,
-                ".*_shoulder_roll_joint":   10,
-                ".*_shoulder_yaw_joint":    10,
-                ".*_elbow_joint":           10,
-                ".*_wrist_roll_joint":      10,
+            velocity_limit_sim={
+                ".*_wrist_roll_joint": 10,
             },
-            stiffness={                                                   
-                ".*_shoulder_pitch_joint":  15,
-                ".*_shoulder_roll_joint":   15,
-                ".*_shoulder_yaw_joint":    10,
-                ".*_elbow_joint":           10,
-                ".*_wrist_roll_joint":      10,
+            stiffness={
+                ".*_wrist_roll_joint": 0.5,
             },
-            damping={                                                     
-                ".*_shoulder_pitch_joint":  1,
-                ".*_shoulder_roll_joint":   1,
-                ".*_shoulder_yaw_joint":    0.7,
-                ".*_elbow_joint":           0.7,
-                ".*_wrist_roll_joint":      0.7,
+            damping={
+                ".*_wrist_roll_joint": 0.05,
             },
-            armature=0.01,
+            armature=0.001,
             min_delay=0,
             max_delay=2,
         ),

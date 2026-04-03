@@ -8,30 +8,35 @@ from typing import Literal
 
 from isaaclab.utils import configclass
 
-from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoActorCriticRecurrentCfg, RslRlPpoAlgorithmCfg, RslRlSymmetryCfg
+from isaaclab_rl.rsl_rl import (
+    RslRlOnPolicyRunnerCfg,
+    RslRlPpoActorCriticCfg,
+    RslRlPpoActorCriticRecurrentCfg,
+    RslRlPpoAlgorithmCfg,
+    RslRlSymmetryCfg,
+)
 from . import symmetry
 
 
 @configclass
 class RslRlAmpCfg:
-    """Configuration class for the AMP (Adversarial Motion Priors) in the training
-    """
-    
+    """Configuration class for the AMP (Adversarial Motion Priors) in the training"""
+
     disc_obs_buffer_size: int = 1000
     """Size of the replay buffer for storing discriminator observations"""
-    
+
     grad_penalty_scale: float = 10.0
     """Scale for the gradient penalty in AMP training"""
-    
+
     disc_trunk_weight_decay: float = 1.0e-4
     """Weight decay for the discriminator trunk network"""
-    
+
     disc_linear_weight_decay: float = 1.0e-2
     """Weight decay for the discriminator linear network"""
-    
+
     disc_learning_rate: float = 1.0e-5
     """Learning rate for the discriminator networks"""
-    
+
     disc_max_grad_norm: float = 1.0
     """Maximum gradient norm for the discriminator networks"""
 
@@ -47,13 +52,13 @@ class RslRlAmpCfg:
 
         style_reward_scale: float = 1.0
         """Scale for the style reward in the training"""
-        
+
         task_style_lerp: float = 0.0
         """Linear interpolation factor for the task style reward in the AMP training."""
 
     amp_discriminator: AMPDiscriminatorCfg = AMPDiscriminatorCfg()
     """Configuration for the AMP discriminator network."""
-    
+
     loss_type: Literal["GAN", "LSGAN", "WGAN"] = "LSGAN"
     """Type of loss function used for the AMP discriminator (e.g., 'GAN', 'LSGAN', 'WGAN')"""
 
@@ -79,7 +84,7 @@ class RslRlPpoActorCriticConv2dCfg(RslRlPpoActorCriticCfg):
 @configclass
 class RslRlPpoAmpAlgorithmCfg(RslRlPpoAlgorithmCfg):
     """Configuration for the AMP algorithm."""
-    
+
     class_name: str = "PPOAmp"
     """The algorithm class name. Default is PPOAmp."""
 
@@ -96,10 +101,10 @@ class RslRlOnPolicyRunnerAmpCfg(RslRlOnPolicyRunnerCfg):
     experiment_name = "simple_amp"
     wandb_project = "simple_amp"
     obs_groups = {
-        "policy": ["policy"], 
-        "critic": ["critic"], 
+        "policy": ["policy"],
+        "critic": ["critic"],
         "discriminator": ["disc"],
-        "discriminator_demonstration": ["disc_demo"]
+        "discriminator_demonstration": ["disc_demo"],
     }
     # policy = RslRlPpoActorCriticRecurrentCfg(
     #     init_noise_std=1.0,
@@ -114,7 +119,7 @@ class RslRlOnPolicyRunnerAmpCfg(RslRlOnPolicyRunnerCfg):
     # )
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,
-        noise_std_type='log', # default is scalar
+        noise_std_type="log",  # default is scalar
         actor_hidden_dims=[512, 256, 128],
         critic_hidden_dims=[512, 256, 128],
         actor_obs_normalization=True,
@@ -152,8 +157,8 @@ class RslRlOnPolicyRunnerAmpCfg(RslRlOnPolicyRunnerCfg):
                 hidden_dims=[1024, 512],
                 activation="elu",
                 style_reward_scale=2.0,
-                task_style_lerp=1.0
+                task_style_lerp=0.9,
             ),
-            loss_type="LSGAN"
+            loss_type="LSGAN",
         ),
     )
