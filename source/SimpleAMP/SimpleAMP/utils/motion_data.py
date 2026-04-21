@@ -3,8 +3,7 @@ import torch
 from pathlib import Path
 from collections import defaultdict
 
-# from . import math_utils
-import math_utils
+from . import math_utils
 
 
 class MotionData:
