@@ -3,7 +3,8 @@ import torch
 from pathlib import Path
 from collections import defaultdict
 
-from . import math_utils
+# from . import math_utils
+import math_utils
 
 
 class MotionData:
@@ -23,20 +24,14 @@ class MotionData:
     def _load_motion_data(self):
         motion_data_dir = Path(self.motion_data_dir)
         if not motion_data_dir.exists():
-            raise ValueError(
-                f"Motion data directory {str(motion_data_dir)} does not exist."
-            )
+            raise ValueError(f"Motion data directory {str(motion_data_dir)} does not exist.")
         motion_files = list(motion_data_dir.rglob("*.pkl"))
         if len(motion_files) == 0:
-            raise ValueError(
-                f"No motion data files with .pkl extension found in {str(motion_data_dir)}"
-            )
+            raise ValueError(f"No motion data files with .pkl extension found in {str(motion_data_dir)}")
         motion_name2path = {p.stem: p for p in motion_files}
 
         if self.motion_data_weights is None:
-            print(
-                "⚠️ Did not specify the motion data weights, load all with weight 1.0!"
-            )
+            print("⚠️ Did not specify the motion data weights, load all with weight 1.0!")
             self.motion_data_weights = {f.stem: 1.0 for f in motion_files}
 
         # Load motion data
@@ -66,32 +61,32 @@ class MotionData:
 
             # load the motion data file
             motion_path = motion_name2path[motion_name]
-            print(
-                f"[Motion Data Manager] Loading motion data from {str(motion_path)}..."
-            )
+            print(f"[Motion Data Manager] Loading motion data from {str(motion_path)}...")
             motion_raw_data = joblib.load(str(motion_path))
             if not isinstance(motion_raw_data, dict):
-                raise ValueError(
-                    f"Motion data file {str(motion_path)} does not contain a valid dictionary."
-                )
+                raise ValueError(f"Motion data file {str(motion_path)} does not contain a valid dictionary.")
 
             num_frames = len(motion_raw_data["root_pos_w"])
             if num_frames < 2:
-                raise ValueError(
-                    f"[MotionLoader] Motion has only {num_frames} frames, cannot compute velocity."
-                )
+                raise ValueError(f"[MotionLoader] Motion has only {num_frames} frames, cannot compute velocity.")
 
             fps = motion_raw_data["fps"]
             root_pos_w = torch.from_numpy(motion_raw_data["root_pos_w"]).to(self.device)
-            root_quat_w = torch.from_numpy(motion_raw_data["root_quat_w"]).to(
-                self.device
-            )  # w,x,y,z
+            root_quat_w = torch.from_numpy(motion_raw_data["root_quat_w"]).to(self.device)  # w,x,y,z
             joint_pos = torch.from_numpy(motion_raw_data["joint_pos"]).to(self.device)
             body_pos_b = torch.from_numpy(motion_raw_data["body_pos_b"]).to(self.device)
+            body_names = motion_raw_data["body_names"]
+            joint_names = motion_raw_data["joint_names"]
             if not self.body_names:
-                self.body_names = motion_raw_data["body_names"]
+                self.body_names = body_names
             if not self.joint_names:
-                self.joint_names = motion_raw_data["joint_names"]
+                self.joint_names = joint_names
+            if len(body_names) != len(self.body_names):
+                raise ValueError(f"current body_names {body_names} does not match self.body_names {self.body_names}.")
+            if len(joint_names) != len(self.joint_names):
+                raise ValueError(
+                    f"current joint_names {joint_names} does not match self.joint_names {self.joint_names}"
+                )
 
             # Calculate vel
             dt = 1.0 / fps
@@ -129,37 +124,25 @@ class MotionData:
             self.joint_vel.append(joint_vel)
             self.body_pos_b.append(body_pos_b)
 
-        self.motion_durations = torch.tensor(
-            self.motion_durations, dtype=torch.float, device=self.device
-        )
-        self.motion_fps = torch.tensor(
-            self.motion_fps, dtype=torch.float, device=self.device
-        )
-        self.motion_dt = torch.tensor(
-            self.motion_dt, dtype=torch.float, device=self.device
-        )
-        self.motion_num_frames = torch.tensor(
-            self.motion_num_frames, dtype=torch.long, device=self.device
-        )
-        self.motion_weights = torch.tensor(
-            self.motion_weights, dtype=torch.float, device=self.device
-        )
+        self.motion_durations = torch.tensor(self.motion_durations, dtype=torch.float, device=self.device)
+        self.motion_fps = torch.tensor(self.motion_fps, dtype=torch.float, device=self.device)
+        self.motion_dt = torch.tensor(self.motion_dt, dtype=torch.float, device=self.device)
+        self.motion_num_frames = torch.tensor(self.motion_num_frames, dtype=torch.long, device=self.device)
+        self.motion_weights = torch.tensor(self.motion_weights, dtype=torch.float, device=self.device)
 
-        self.root_pos_w = torch.cat(self.root_pos_w)
-        self.root_quat_w = torch.cat(self.root_quat_w)
-        self.root_lin_vel_w = torch.cat(self.root_lin_vel_w)
-        self.root_ang_vel_w = torch.cat(self.root_ang_vel_w)
-        self.joint_pos = torch.cat(self.joint_pos)
-        self.joint_vel = torch.cat(self.joint_vel)
-        self.body_pos_b = torch.cat(self.body_pos_b)
+        self.root_pos_w = torch.cat(self.root_pos_w).float()
+        self.root_quat_w = torch.cat(self.root_quat_w).float()
+        self.root_lin_vel_w = torch.cat(self.root_lin_vel_w).float()
+        self.root_ang_vel_w = torch.cat(self.root_ang_vel_w).float()
+        self.joint_pos = torch.cat(self.joint_pos).float()
+        self.joint_vel = torch.cat(self.joint_vel).float()
+        self.body_pos_b = torch.cat(self.body_pos_b).float()
 
         # Some other information
         self.num_joints = self.joint_pos.shape[-1]
         self.num_bodies = self.body_pos_b.shape[-2]
 
-        self.motion_ids = torch.arange(
-            len(self.motion_durations), dtype=torch.long, device=self.device
-        )
+        self.motion_ids = torch.arange(len(self.motion_durations), dtype=torch.long, device=self.device)
 
         lengths_shifted = self.motion_num_frames.roll(1)
         lengths_shifted[0] = 0
@@ -185,9 +168,7 @@ class MotionData:
             assert (
                 truncate_time_start >= 0
             ), f"[MotionLoader] truncate_time_start must be non-negative, but got {truncate_time_start}."
-            time_start = torch.clamp(
-                time_start + truncate_time_start, min=0.0, max=motion_durations
-            )
+            time_start = torch.clamp(time_start + truncate_time_start, min=0.0, max=motion_durations)
 
         if truncate_time_end is not None:
             assert (
@@ -198,9 +179,7 @@ class MotionData:
         # Check if valid range exists
         valid_range = time_end - time_start
         if torch.any(valid_range <= 0.0):
-            print(
-                "[Warning] Some motions have invalid time range after truncation (start >= end)."
-            )
+            print("[Warning] Some motions have invalid time range after truncation (start >= end).")
             valid_range = torch.clamp(valid_range, min=1e-6)  # Prevent division by zero
 
         # Sample time within the valid range
@@ -209,16 +188,11 @@ class MotionData:
 
         return sample_times
 
-    def sample_motion_seq_times(
-        self, motion_ids: torch.Tensor, n_steps: int, dt: float
-    ) -> torch.Tensor:
+    def sample_motion_seq_times(self, motion_ids: torch.Tensor, n_steps: int, dt: float) -> torch.Tensor:
         motion_seq_duration = n_steps * dt
-        start_times = self.sample_motion_times(
-            motion_ids, truncate_time_end=motion_seq_duration
-        )  # (ids,)
+        start_times = self.sample_motion_times(motion_ids, truncate_time_end=motion_seq_duration)  # (ids,)
         motion_seq_times = (
-            start_times.reshape(-1, 1)
-            + torch.arange(n_steps, device=self.device).reshape(1, -1) * dt
+            start_times.reshape(-1, 1) + torch.arange(n_steps, device=self.device).reshape(1, -1) * dt
         )  # (ids, steps)
         return motion_seq_times
 
@@ -309,9 +283,7 @@ class MotionData:
     ) -> dict[str, torch.Tensor]:
         motion_seq_data = defaultdict(list)
         for seq in range(motion_seq_times.shape[-1]):
-            motion_state = self.get_motion_data(
-                motion_ids, motion_seq_times[:, seq], joint_names, body_names
-            )
+            motion_state = self.get_motion_data(motion_ids, motion_seq_times[:, seq], joint_names, body_names)
             for k, v in motion_state.items():
                 motion_seq_data[k].append(v)
         for k, v in motion_seq_data.items():
@@ -329,9 +301,7 @@ if __name__ == "__main__":
     )
     for _ in range(3):
         motion_ids = motion_data.sample_motion_ids(4096)
-        motion_seq_times = motion_data.sample_motion_seq_times(
-            motion_ids=motion_ids, n_steps=3, dt=0.1
-        )
+        motion_seq_times = motion_data.sample_motion_seq_times(motion_ids=motion_ids, n_steps=3, dt=0.1)
         motion_seq_data = motion_data.get_motion_seq_data(motion_ids, motion_seq_times)
         amp_input = torch.cat(
             [
