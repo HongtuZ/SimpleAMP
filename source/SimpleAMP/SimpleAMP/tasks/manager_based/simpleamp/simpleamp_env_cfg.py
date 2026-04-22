@@ -86,9 +86,7 @@ class SimpleampSceneCfg(InteractiveSceneCfg):
     # robots
     robot: ArticulationCfg = THS23DOF_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
     # sensors
-    contact_forces = ContactSensorCfg(
-        prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True
-    )
+    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True)
     # lights
     sky_light = AssetBaseCfg(
         prim_path="/World/skyLight",
@@ -129,9 +127,7 @@ class CommandsCfg:
 class ActionsCfg:
     """Action specifications for the MDP."""
 
-    joint_pos = mdp.JointPositionActionCfg(
-        asset_name="robot", joint_names=[".*"], scale=0.25, use_default_offset=True
-    )
+    joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*"], scale=0.25, use_default_offset=True)
 
 
 @configclass
@@ -143,22 +139,14 @@ class ObservationsCfg:
         """Observations for policy group."""
 
         # observation terms (order preserved)
-        base_ang_vel = ObsTerm(
-            func=mdp.base_ang_vel, noise=Unoise(n_min=-0.35, n_max=0.35)
-        )
+        base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.35, n_max=0.35))
         projected_gravity = ObsTerm(
             func=mdp.projected_gravity,
             noise=Unoise(n_min=-0.05, n_max=0.05),
         )
-        velocity_commands = ObsTerm(
-            func=mdp.generated_commands, params={"command_name": "base_velocity"}
-        )
-        joint_pos = ObsTerm(
-            func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.03, n_max=0.03)
-        )
-        joint_vel = ObsTerm(
-            func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.75, n_max=1.75)
-        )
+        velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
+        joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.03, n_max=0.03))
+        joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.75, n_max=1.75))
         actions = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self) -> None:
@@ -177,9 +165,7 @@ class ObservationsCfg:
         base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel)
         projected_gravity = ObsTerm(func=mdp.projected_gravity)
-        velocity_commands = ObsTerm(
-            func=mdp.generated_commands, params={"command_name": "base_velocity"}
-        )
+        velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
         joint_pos = ObsTerm(func=mdp.joint_pos)
         joint_vel = ObsTerm(func=mdp.joint_vel)
         actions = ObsTerm(func=mdp.last_action)
@@ -211,9 +197,7 @@ class ObservationsCfg:
     @configclass
     class DiscriminatorDemoCfg(ObsGroup):
         # This should be same with the above disc obs
-        amp_data_disc_obs = ObsTerm(
-            func=mdp.amp_data_discriminator_obs, params={"n_steps": AMP_INPUT_STEPS}
-        )
+        amp_data_disc_obs = ObsTerm(func=mdp.amp_data_discriminator_obs, params={"n_steps": AMP_INPUT_STEPS})
 
     disc_demo: DiscriminatorDemoCfg = DiscriminatorDemoCfg()
 
@@ -250,9 +234,7 @@ class EventCfg:
         func=mdp.randomize_rigid_body_com,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg(
-                "robot", body_names=["torso_link", "base_link"]
-            ),
+            "asset_cfg": SceneEntityCfg("robot", body_names=["torso_link", "base_link"]),
             "com_range": {
                 "x": (-0.06, 0.03),
                 "y": (-0.03, 0.03),
@@ -265,9 +247,7 @@ class EventCfg:
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg(
-                "robot", body_names=["left_.*_link", "right_.*_link"]
-            ),
+            "asset_cfg": SceneEntityCfg("robot", body_names=["left_.*_link", "right_.*_link"]),
             "mass_distribution_params": (0.8, 1.2),
             "operation": "scale",
         },
@@ -339,9 +319,7 @@ class EventCfg:
         func=mdp.push_by_setting_velocity,
         mode="interval",
         interval_range_s=(10.0, 20.0),
-        params={
-            "velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-1.0, 1.0)}
-        },
+        params={"velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-1.0, 1.0)}},
     )
 
 
@@ -349,63 +327,71 @@ class EventCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    # -- Task
+    # -- 主任务，线速度奖励
     track_lin_vel_xy_exp = RewTerm(
         func=mdp.track_lin_vel_xy_exp,
-        weight=1.25,
-        params={"command_name": "base_velocity", "std": math.sqrt(0.5)},
+        weight=1.5,
+        params={"command_name": "base_velocity", "std": 0.5},
     )
+    # -- 角速度跟踪奖励权重（z轴指数形式）
     track_ang_vel_z_exp = RewTerm(
-        func=mdp.track_ang_vel_z_exp,
-        weight=1.25,
-        params={"command_name": "base_velocity", "std": math.sqrt(0.5)},
+        func=mdp.track_ang_vel_z_exp, weight=1.5, params={"command_name": "base_velocity", "std": 0.5}
     )
-    # -- Alive
-    alive = RewTerm(func=mdp.is_alive, weight=0.5)
+    # -- 存活奖励
+    alive = RewTerm(func=mdp.is_alive, weight=0.0)  # 0.15
 
-    # -- Base Link
-    # lin_vel_z_l2 = RewTerm(func=mdp.lin_vel_z_l2, weight=-0.1)
-    ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.1)
-    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=-1.0)
+    # -- 基座相关惩罚
+    lin_vel_z_l2 = RewTerm(func=mdp.lin_vel_z_l2, weight=-0.1)  # 基座Z 轴 上下线速度
+    ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.1)  # 基座XY轴运动惩罚
+    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=-10)  # 基座平面姿态惩罚
 
-    # -- Joint
-    joint_vel_l2 = RewTerm(func=mdp.joint_vel_l2, weight=-2e-4)
-    joint_acc_l2 = RewTerm(func=mdp.joint_acc_l2, weight=-2.5e-7)
-    action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-0.01)
-    # smoothness_1 = RewTerm(func=mdp.smoothness_1, weight=0)
-    joint_pos_limits = RewTerm(func=mdp.joint_pos_limits, weight=-1.0)
-    joint_energy = RewTerm(func=mdp.joint_energy, weight=-1e-4)
-    joint_regularization = RewTerm(func=mdp.joint_deviation_l1, weight=-1e-3)
-    # joint_torques_l2 = RewTerm(func=mdp.joint_torques_l2, weight=-1.0e-5)
+    # base_height = RewTerm(func=mdp.base_height_l2, weight=-10, params={"target_height": 0.75})   # 机身高度惩罚：目标高度0.74米
+
+    # 基座高度 奖励
+    base_height = RewTerm(func=mdp.base_height_exp, weight=0.0, params={"target_height": 0.73, "std": 0.05})
+
+    # -- 关节类的惩罚
+    joint_vel_l2 = RewTerm(func=mdp.joint_vel_l2, weight=-0.001)  # 关节速度惩罚
+    joint_acc_l2 = RewTerm(func=mdp.joint_acc_l2, weight=-2.5e-7)  # 关节加速度惩罚
+    action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-0.05)  # 动作变化率惩罚
+    # smoothness_1 = RewTerm(func=mdp.smoothness_1, weight=0)                                  # 惩罚动作的变化量
+    joint_pos_limits = RewTerm(func=mdp.joint_pos_limits, weight=-5.0)  # 关节位置限位惩罚
+    joint_energy = RewTerm(func=mdp.joint_energy, weight=-2e-5)  # 关节能耗惩罚
+    joint_regularization = RewTerm(func=mdp.joint_deviation_l1, weight=-1e-3)  # 关节正则化惩罚
+    # joint_torques_l2 = RewTerm(func=mdp.joint_torques_l2,weight=-1e-5 )                       # 关节扭矩惩罚
+
+    # -- 惩罚机器人在低速移动时的身体摇摆/晃动
     low_speed_sway_penalty = RewTerm(
         func=mdp.low_speed_sway_penalty,
         weight=-1e-2,
-        params={"command_name": "base_velocity", "command_threshold": 0.1},
+        params={
+            "command_name": "base_velocity",
+            "command_threshold": 0.1,
+        },
     )
 
-    # -- Feet
+    # -- 脚部滑动惩罚
     feet_slide = RewTerm(
         func=mdp.feet_slide,
-        weight=-0.1,
+        weight=-0.5,
         params={
-            "sensor_cfg": SceneEntityCfg(
-                "contact_forces", body_names=".*_ankle_roll_link"
-            ),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
         },
     )
+    # -- 脚部绊倒惩罚
     feet_stumble = RewTerm(
         func=mdp.feet_stumble,
         weight=-0.1,
         params={
-            "sensor_cfg": SceneEntityCfg(
-                "contact_forces", body_names=".*_ankle_roll_link"
-            ),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
         },
     )
+
+    # 落地冲击惩罚
     sound_suppression = RewTerm(
         func=mdp.sound_suppression_acc_per_foot,
-        weight=-5e-5,
+        weight=-1e-5,
         params={
             "sensor_cfg": SceneEntityCfg(
                 "contact_forces",
@@ -413,27 +399,14 @@ class RewardsCfg:
             ),
         },
     )
-    feet_air_time_positive_biped = RewTerm(
-        func=mdp.feet_air_time_positive_biped,
-        weight=1.0,
-        params={
-            "command_name": "base_velocity",
-            "sensor_cfg": SceneEntityCfg(
-                "contact_forces", body_names=".*_ankle_roll_link"
-            ),
-            "threshold": 0.4,
-        },
-    )
 
-    # -- Other
+    # 惩罚机器人身体非脚部区域与环境的接触
     undesired_contacts = RewTerm(
         func=mdp.undesired_contacts,
-        weight=-1.0,
+        weight=-1,
         params={
-            "sensor_cfg": SceneEntityCfg(
-                "contact_forces", body_names="(?!.*ankle.*).*"
-            ),  # exclude ankle links
-            "threshold": 1.0,
+            "threshold": 1,
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["(?!.*ankle.*).*"]),
         },
     )
 
@@ -453,9 +426,7 @@ class TerminationsCfg:
             "threshold": 1.0,
         },
     )
-    base_height = DoneTerm(
-        func=mdp.root_height_below_minimum, params={"minimum_height": 0.2}
-    )
+    base_height = DoneTerm(func=mdp.root_height_below_minimum, params={"minimum_height": 0.2})
     bad_orientation = DoneTerm(
         func=mdp.bad_orientation,
         params={

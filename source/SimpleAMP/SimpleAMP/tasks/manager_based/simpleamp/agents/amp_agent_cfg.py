@@ -157,7 +157,7 @@ class RslRlOnPolicyRunnerAmpCfg(RslRlOnPolicyRunnerCfg):
                 hidden_dims=[1024, 512],
                 activation="elu",
                 style_reward_scale=2.0,
-                task_style_lerp=0.9,
+                task_style_lerp=0.3,
             ),
             loss_type="LSGAN",
         ),

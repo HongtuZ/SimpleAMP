@@ -1,6 +1,6 @@
-asset_path: /legged_lab/assets/ths_23dof/urdf/ths_23dof.urdf 
-usd_dir: /legged_lab/assets/ths_23dof/usd 
-usd_file_name: ths_23dof.usd 
+asset_path: /legged_lab/assets/ths_23dof_0418/urdf/ths_23dof_0418.urdf 
+usd_dir: /legged_lab/assets/ths_23dof_0418/usd 
+usd_file_name: ths_23dof_0418.usd 
 force_usd_conversion: true
 make_instanceable: true
 fix_base: false
