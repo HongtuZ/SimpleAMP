@@ -106,26 +106,17 @@ class RslRlOnPolicyRunnerAmpCfg(RslRlOnPolicyRunnerCfg):
         "discriminator": ["disc"],
         "discriminator_demonstration": ["disc_demo"],
     }
-    # policy = RslRlPpoActorCriticRecurrentCfg(
-    #     init_noise_std=1.0,
-    #     actor_hidden_dims=[512, 256, 128],
-    #     critic_hidden_dims=[512, 256, 128],
-    #     actor_obs_normalization=False,
-    #     critic_obs_normalization=False,
-    #     activation="elu",
-    #     rnn_type="lstm",
-    #     rnn_hidden_dim=128,
-    #     rnn_num_layers=1
-    # )
+
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,
-        noise_std_type="log",  # default is scalar
+        # noise_std_type='log',
         actor_hidden_dims=[512, 256, 128],
         critic_hidden_dims=[512, 256, 128],
         actor_obs_normalization=True,
         critic_obs_normalization=True,
         activation="elu",
     )
+
     algorithm = RslRlPpoAmpAlgorithmCfg(
         class_name="PPOAMP",
         value_loss_coef=1.0,
@@ -143,7 +134,7 @@ class RslRlOnPolicyRunnerAmpCfg(RslRlOnPolicyRunnerCfg):
         # symmetry_cfg=RslRlSymmetryCfg(
         #     use_data_augmentation=True,
         #     use_mirror_loss=True,
-        #     mirror_loss_coeff=0.1, # 0.1
+        #     mirror_loss_coeff=0.1,
         #     data_augmentation_func=symmetry.compute_symmetric_states
         # ),
         amp_cfg=RslRlAmpCfg(

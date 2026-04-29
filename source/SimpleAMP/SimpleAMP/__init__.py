@@ -12,3 +12,7 @@ from .tasks import *
 
 # Register UI extensions.
 from .ui_extension_example import *
+
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parents[3]

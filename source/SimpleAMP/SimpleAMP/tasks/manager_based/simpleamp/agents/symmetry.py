@@ -46,7 +46,7 @@ def compute_symmetric_states(
         obs_aug["policy"][:batch_size] = obs["policy"][:]
         # -- left-right
         obs_aug["policy"][batch_size : 2 * batch_size] = _transform_policy_obs_left_right(env.unwrapped, obs["policy"])
-        
+
         # critic observation group
         # -- original
         obs_aug["critic"][:batch_size] = obs["critic"][:]
@@ -151,7 +151,6 @@ def _transform_critic_obs_left_right(env: ManagerBasedRLEnv, obs: torch.Tensor) 
     return obs
 
 
-
 """
 Symmetry functions for actions.
 """
@@ -219,9 +218,13 @@ def _switch_joints_left_right(joint_data: torch.Tensor) -> torch.Tensor:
     """Applies a left-right symmetry transformation to the joint data tensor."""
     joint_data_switched = joint_data.clone()
     # left <-- right
-    joint_data_switched[..., [0, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21]] = joint_data[..., [1, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]]
+    joint_data_switched[..., [0, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21]] = joint_data[
+        ..., [1, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]
+    ]
     # right <-- left
-    joint_data_switched[..., [1, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]] = joint_data[..., [0, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21]]
+    joint_data_switched[..., [1, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]] = joint_data[
+        ..., [0, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21]
+    ]
 
     joint_data_switched *= -1
 

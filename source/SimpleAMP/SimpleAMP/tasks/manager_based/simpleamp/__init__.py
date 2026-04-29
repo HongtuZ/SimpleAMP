@@ -14,7 +14,7 @@ from . import agents
 
 gym.register(
     id="Template-Simpleamp-v0",
-    entry_point=f"{__name__}.simpleamp_env:SimpleampEnv",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
         "env_cfg_entry_point": f"{__name__}.simpleamp_env_cfg:SimpleampEnvCfg",
@@ -24,7 +24,7 @@ gym.register(
 
 gym.register(
     id="Template-Simpleamp-v0-Play",
-    entry_point=f"{__name__}.simpleamp_env:SimpleampEnv",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
         "env_cfg_entry_point": f"{__name__}.simpleamp_env_cfg:SimpleampEnvCfgPlay",

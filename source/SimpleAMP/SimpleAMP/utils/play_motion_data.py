@@ -4,11 +4,11 @@ import numpy as np
 import time
 import torch
 
-from motion_data import MotionData
+from motion_loader import MotionLoader
 
 
 class MuJoCoMotionPlayer:
-    def __init__(self, mjcf_path: str, motion_data: MotionData):
+    def __init__(self, mjcf_path: str, motion_loader: MotionLoader):
         """
         :param mjcf_path: MuJoCo模型文件路径 (.xml)
         :param motion_manager: 运动数据管理器实例
@@ -18,19 +18,19 @@ class MuJoCoMotionPlayer:
         self.data = mujoco.MjData(self.model)
 
         # 运动数据管理器
-        self.motion_data = motion_data
+        self.motion_loader = motion_loader
 
         # 播放参数
-        self.fps = 20 # 播放帧率
+        self.fps = 20  # 播放帧率
         self.play_speed = 10  # 播放速度
         self.motion_id = 10  # 要播放的运动ID
 
-    def _set_mujoco_state(self, motion_data: dict):
+    def _set_mujoco_state(self, motion_loader: dict):
         """将运动数据设置到MuJoCo的data中"""
         # 1. 转换张量为numpy（CPU）
-        root_pos_w = motion_data["root_pos_w"].cpu().numpy()[0]
-        root_quat_w = motion_data["root_quat_w"].cpu().numpy()[0]
-        joint_pos = motion_data["joint_pos"].cpu().numpy()[0]
+        root_pos_w = motion_loader["root_pos_w"].cpu().numpy()[0]
+        root_quat_w = motion_loader["root_quat_w"].cpu().numpy()[0]
+        joint_pos = motion_loader["joint_pos"].cpu().numpy()[0]
 
         self.data.qpos[:3] = root_pos_w
         self.data.qpos[3:7] = root_quat_w
@@ -41,7 +41,7 @@ class MuJoCoMotionPlayer:
     def play(self):
         """开始播放运动"""
         # 计算总时长和时间步
-        motion_duration = self.motion_data.motion_durations[self.motion_id].cpu().item()
+        motion_duration = self.motion_loader.motion_durations[self.motion_id].cpu().item()
         dt = 1.0 / (self.fps * self.play_speed)
 
         # 创建Viewer
@@ -60,12 +60,12 @@ class MuJoCoMotionPlayer:
 
                 # 1. 获取当前时刻的运动数据
                 print(current_time)
-                motion_ids = torch.tensor([self.motion_id], device=self.motion_data.device)
-                motion_times = torch.tensor([current_time], device=self.motion_data.device)
-                motion_data = self.motion_data.get_motion_data(motion_ids, motion_times)
+                motion_ids = torch.tensor([self.motion_id], device=self.motion_loader.device)
+                motion_times = torch.tensor([current_time], device=self.motion_loader.device)
+                motion_loader = self.motion_loader.get_motion_data(motion_ids, motion_times)
 
                 # 2. 设置MuJoCo状态
-                self._set_mujoco_state(motion_data)
+                self._set_mujoco_state(motion_loader)
 
                 # 3. 更新Viewer
                 viewer.cam.lookat = self.data.qpos[:3]
@@ -85,12 +85,12 @@ class MuJoCoMotionPlayer:
 # --------------------------
 if __name__ == "__main__":
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    motion_data = MotionData(
+    motion_loader = MotionLoader(
         motion_data_dir="/home/robot/hongtu/SimpleAMP/robot_assets/ths_23dof/motion_data", device=DEVICE
     )
     # 配置路径（替换为你的实际路径）
     MJCF_PATH = "/home/robot/hongtu/SimpleAMP/robot_assets/ths_23dof/urdf/ths_23dof.xml"  # MuJoCo模型文件
 
     # 2. 创建播放器并开始播放
-    player = MuJoCoMotionPlayer(MJCF_PATH, motion_data)
+    player = MuJoCoMotionPlayer(MJCF_PATH, motion_loader)
     player.play()
