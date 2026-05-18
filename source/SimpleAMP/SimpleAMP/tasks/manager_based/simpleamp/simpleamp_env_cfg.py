@@ -480,19 +480,6 @@ class RewardsCfg:
         },
     )
 
-    # -- 惩罚手臂roll关节偏离默认值，抑制手臂过度外展
-    joint_deviation_arms = RewTerm(
-        func=mdp.joint_deviation_l1,
-        weight=-0.3,
-        params={
-            "asset_cfg": SceneEntityCfg(
-                "robot",
-                joint_names=[
-                    ".*_shoulder_roll_joint",
-                ],
-            )
-        },
-    )
 
     # 惩罚双腿过渡靠近内侧导致绊倒
     hip_roll_inner_side = RewTerm(func=mdp.hip_roll_inner_side, weight=-10)
@@ -618,7 +605,7 @@ class SimpleampEnvCfg(ManagerBasedRLEnvCfg):
         self.decimation = 4  # 降采样：每 4 个仿真步执行一次控制指令
         self.episode_length_s = 20  # 回合时长：每个训练回合持续 20 秒
         # simulation settings
-        self.sim.dt = 1 / 400  # 仿真步长：设置物理仿真间隔为 1/200 = 0.005 秒 (即 200Hz 仿真频率)
+        self.sim.dt = 1 / 200  # 仿真步长：设置物理仿真间隔为 1/200 = 0.005 秒 (即 200Hz 仿真频率)
         self.sim.render_interval = self.decimation
 
 
